@@ -5,23 +5,14 @@
 MRguldMC WEBSITE
 ====================================================
 
-Website:
-https://mrguld.mtcore.dk
-
-Minecraft Server:
+Minecraft:
 play.mrguldmc.dk:25565
 
-API:
-mcsrvstat.us
+Website:
+mrguld.mtcore.dk
 
-Pages:
-index.html
-rules.html
-survival.html
-store.html
-staff.html
-status.html
-join.html
+Status API:
+mcsrvstat.us
 ====================================================
 */
 
@@ -32,24 +23,19 @@ join.html
 
 const MR_CONFIG = {
     server: {
-        host: "cookiesmp.mtcore.dk",
+        host: "play.mrguldmc.dk",
         port: 25565,
         refreshRate: 15000
     },
 
-    website: {
-        name: "MRguldMC",
-        year: 2026
-    },
-
-    api: {
-        base: "https://api.mcsrvstat.us/3"
+    loading: {
+        minimumTime: 650
     }
 };
 
 
 /* ==================================================
-   GLOBAL STATE
+   STATE
 ================================================== */
 
 const MR_STATE = {
@@ -57,13 +43,12 @@ const MR_STATE = {
     players: 0,
     maxPlayers: 0,
     version: "Unknown",
-    lastUpdate: null,
-    loading: false
+    loadingStatus: false
 };
 
 
 /* ==================================================
-   DOM HELPERS
+   HELPERS
 ================================================== */
 
 function $(id) {
@@ -74,9 +59,218 @@ function $all(selector) {
     return document.querySelectorAll(selector);
 }
 
+function getServerAddress() {
+    return `${MR_CONFIG.server.host}:${MR_CONFIG.server.port}`;
+}
+
 
 /* ==================================================
-   TOAST SYSTEM
+   LOADING SCREEN
+================================================== */
+
+function createLoadingScreen() {
+
+    if ($("pageLoader")) {
+        return $("pageLoader");
+    }
+
+    const loader = document.createElement("div");
+
+    loader.id = "pageLoader";
+    loader.className = "page-loader";
+
+    loader.innerHTML = `
+        <div class="page-loader-content">
+
+            <img
+                src="loading.png"
+                alt="Loading"
+                class="page-loader-icon"
+            >
+
+            <div class="page-loader-text">
+                LOADING
+            </div>
+
+            <div class="page-loader-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(loader);
+
+    return loader;
+}
+
+
+function showLoadingScreen() {
+
+    const loader = createLoadingScreen();
+
+    requestAnimationFrame(() => {
+        loader.classList.remove("hidden");
+        loader.classList.add("visible");
+    });
+}
+
+
+function hideLoadingScreen() {
+
+    const loader = $("pageLoader");
+
+    if (!loader) {
+        return;
+    }
+
+    loader.classList.remove("visible");
+    loader.classList.add("hidden");
+
+    setTimeout(() => {
+
+        if (loader && loader.parentNode) {
+            loader.parentNode.removeChild(loader);
+        }
+
+    }, 300);
+}
+
+
+/* ==================================================
+   INITIAL PAGE LOADING
+================================================== */
+
+function initialPageLoader() {
+
+    const loader = createLoadingScreen();
+
+    loader.classList.add("visible");
+
+    const startTime = Date.now();
+
+    window.addEventListener(
+        "load",
+        () => {
+
+            const elapsed =
+                Date.now() - startTime;
+
+            const remaining =
+                Math.max(
+                    0,
+                    MR_CONFIG.loading.minimumTime - elapsed
+                );
+
+            setTimeout(
+                hideLoadingScreen,
+                remaining
+            );
+
+        },
+        {
+            once: true
+        }
+    );
+
+}
+
+
+/* ==================================================
+   PAGE NAVIGATION LOADING
+================================================== */
+
+function setupPageNavigation() {
+
+    const links = $all(
+        'a[href$=".html"]'
+    );
+
+    links.forEach(link => {
+
+        link.addEventListener(
+            "click",
+            function(event) {
+
+                const href =
+                    this.getAttribute("href");
+
+                if (!href) {
+                    return;
+                }
+
+                /*
+                Don't show loader for:
+                - Ctrl click
+                - Shift click
+                - Middle mouse
+                - New tab
+                - Same page
+                */
+
+                if (
+                    event.ctrlKey ||
+                    event.shiftKey ||
+                    event.metaKey ||
+                    event.button !== 0
+                ) {
+                    return;
+                }
+
+                const current =
+                    window.location.pathname
+                        .split("/")
+                        .pop()
+                        .toLowerCase();
+
+                const target =
+                    href
+                        .split("?")[0]
+                        .split("#")[0]
+                        .toLowerCase();
+
+                if (
+                    target === current ||
+                    (target === "index.html" &&
+                     (current === "" || current === "/"))
+                ) {
+                    return;
+                }
+
+                /*
+                External links are ignored.
+                */
+
+                if (
+                    href.startsWith("http://") ||
+                    href.startsWith("https://") ||
+                    href.startsWith("//")
+                ) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                showLoadingScreen();
+
+                setTimeout(
+                    () => {
+                        window.location.href = href;
+                    },
+                    MR_CONFIG.loading.minimumTime
+                );
+
+            }
+        );
+
+    });
+}
+
+
+/* ==================================================
+   TOAST
 ================================================== */
 
 let toastTimer = null;
@@ -103,16 +297,17 @@ function showToast(message, duration = 2500) {
         clearTimeout(toastTimer);
     }
 
-    toastTimer = setTimeout(() => {
-
-        toast.classList.remove("show");
-
-    }, duration);
+    toastTimer = setTimeout(
+        () => {
+            toast.classList.remove("show");
+        },
+        duration
+    );
 }
 
 
 /* ==================================================
-   COPY TO CLIPBOARD
+   COPY
 ================================================== */
 
 async function copyText(text) {
@@ -125,7 +320,8 @@ async function copyText(text) {
 
         } else {
 
-            const textarea = document.createElement("textarea");
+            const textarea =
+                document.createElement("textarea");
 
             textarea.value = text;
 
@@ -157,99 +353,140 @@ async function copyText(text) {
 
 
 /* ==================================================
-   SERVER IP
+   COPY SERVER BUTTONS
 ================================================== */
 
-function getServerAddress() {
+function setupCopyButtons() {
 
-    return `${MR_CONFIG.server.host}:${MR_CONFIG.server.port}`;
+    const buttons = $all(
+        "#copyIp, [data-copy-server]"
+    );
 
+    buttons.forEach(button => {
+
+        button.addEventListener(
+            "click",
+            async function(event) {
+
+                event.preventDefault();
+
+                const address =
+                    getServerAddress();
+
+                const success =
+                    await copyText(address);
+
+                if (success) {
+
+                    showToast(
+                        "Server IP copied!"
+                    );
+
+                    const original =
+                        button.textContent;
+
+                    button.textContent =
+                        "COPIED!";
+
+                    setTimeout(
+                        () => {
+                            button.textContent =
+                                original;
+                        },
+                        1600
+                    );
+
+                } else {
+
+                    showToast(
+                        `Server IP: ${address}`
+                    );
+                }
+
+            }
+        );
+
+    });
 }
 
 
 /* ==================================================
-   SERVER API URL
+   SERVER API
 ================================================== */
 
 function getServerApiUrl() {
 
-    const host = MR_CONFIG.server.host;
-    const port = MR_CONFIG.server.port;
-
-    return `${MR_CONFIG.api.base}/${host}:${port}`;
+    return (
+        `https://api.mcsrvstat.us/3/` +
+        `${MR_CONFIG.server.host}:` +
+        `${MR_CONFIG.server.port}`
+    );
 
 }
 
 
-/* ==================================================
-   SERVER STATUS
-================================================== */
-
 async function updateServerStatus() {
 
-    if (MR_STATE.loading) {
+    if (MR_STATE.loadingStatus) {
         return;
     }
 
-    MR_STATE.loading = true;
+    MR_STATE.loadingStatus = true;
 
     try {
 
-        const response = await fetch(
-            getServerApiUrl(),
-            {
-                method: "GET",
-                cache: "no-store"
-            }
-        );
+        const response =
+            await fetch(
+                getServerApiUrl(),
+                {
+                    method: "GET",
+                    cache: "no-store"
+                }
+            );
 
         if (!response.ok) {
-
             throw new Error(
                 `HTTP ${response.status}`
             );
-
         }
 
-        const data = await response.json();
+        const data =
+            await response.json();
 
-        console.log(
-            "[MRguldMC] Server data:",
-            data
-        );
+        if (
+            data &&
+            data.online === true
+        ) {
 
-        if (data && data.online === true) {
-
-            handleServerOnline(data);
+            setServerOnline(data);
 
         } else {
 
-            handleServerOffline();
-
+            setServerOffline();
         }
 
     } catch (error) {
 
         console.error(
-            "[MRguldMC] Server status error:",
+            "[MRguldMC] Server API error:",
             error
         );
 
-        handleServerOffline();
+        setServerOffline();
 
     } finally {
 
-        MR_STATE.loading = false;
+        MR_STATE.loadingStatus = false;
 
     }
 }
 
 
 /* ==================================================
-   SERVER ONLINE
+   ONLINE
 ================================================== */
 
-function handleServerOnline(data) {
+function setServerOnline(data) {
 
     const players =
         Number(
@@ -263,78 +500,51 @@ function handleServerOnline(data) {
 
     const version =
         data.version ||
-        data.protocol?.name ||
         "Java Edition";
 
 
     MR_STATE.online = true;
-
     MR_STATE.players = players;
-
     MR_STATE.maxPlayers = maxPlayers;
-
     MR_STATE.version = version;
-
-    MR_STATE.lastUpdate = new Date();
 
 
     updatePlayerCount(players);
-
     updateMaxPlayers(maxPlayers);
-
     updateServerVersion(version);
-
     updateStatusText(true);
-
-    updateHeroStatus(true);
-
     updateServerState(true);
-
+    updateHeroStatus(true);
     updateStatusDot(true);
-
     updatePlayerProgress(
         players,
         maxPlayers
     );
 
-    updateOnlineElements(true);
 }
 
 
 /* ==================================================
-   SERVER OFFLINE
+   OFFLINE
 ================================================== */
 
-function handleServerOffline() {
+function setServerOffline() {
 
     MR_STATE.online = false;
-
     MR_STATE.players = 0;
-
     MR_STATE.maxPlayers = 0;
-
     MR_STATE.version = "Offline";
-
-    MR_STATE.lastUpdate = new Date();
 
 
     updatePlayerCount(0);
-
     updateMaxPlayers(0);
-
     updateServerVersion("Offline");
-
     updateStatusText(false);
-
-    updateHeroStatus(false);
-
     updateServerState(false);
-
+    updateHeroStatus(false);
     updateStatusDot(false);
-
     updatePlayerProgress(0, 0);
 
-    updateOnlineElements(false);
 }
 
 
@@ -344,13 +554,15 @@ function handleServerOffline() {
 
 function updatePlayerCount(count) {
 
-    const element = $("playerCount");
+    const element =
+        $("playerCount");
 
     if (!element) {
         return;
     }
 
-    element.textContent = formatNumber(count);
+    element.textContent =
+        Number(count).toLocaleString();
 
 }
 
@@ -361,30 +573,34 @@ function updatePlayerCount(count) {
 
 function updateMaxPlayers(max) {
 
-    const element = $("maxPlayers");
+    const element =
+        $("maxPlayers");
 
     if (!element) {
         return;
     }
 
-    element.textContent = formatNumber(max);
+    element.textContent =
+        Number(max).toLocaleString();
 
 }
 
 
 /* ==================================================
-   SERVER VERSION
+   VERSION
 ================================================== */
 
 function updateServerVersion(version) {
 
-    const element = $("serverVersion");
+    const element =
+        $("serverVersion");
 
     if (!element) {
         return;
     }
 
-    element.textContent = version;
+    element.textContent =
+        version;
 
 }
 
@@ -395,26 +611,22 @@ function updateServerVersion(version) {
 
 function updateStatusText(online) {
 
-    const element = $("statusText");
+    const element =
+        $("statusText");
 
     if (!element) {
         return;
     }
 
-    if (online) {
+    element.textContent =
+        online
+            ? "ONLINE"
+            : "OFFLINE";
 
-        element.textContent = "ONLINE";
-
-        element.style.color =
-            "#35ff72";
-
-    } else {
-
-        element.textContent = "OFFLINE";
-
-        element.style.color =
-            "#ff5264";
-    }
+    element.style.color =
+        online
+            ? "#35ff72"
+            : "#ff5264";
 }
 
 
@@ -424,7 +636,8 @@ function updateStatusText(online) {
 
 function updateServerState(online) {
 
-    const element = $("serverState");
+    const element =
+        $("serverState");
 
     if (!element) {
         return;
@@ -444,34 +657,23 @@ function updateServerState(online) {
 
 function updateHeroStatus(online) {
 
-    const element = $("heroStatus");
+    const element =
+        $("heroStatus");
 
     if (!element) {
         return;
     }
 
-    if (online) {
+    element.innerHTML =
+        `
+        <span class="status-dot"></span>
+        ${online ? "SERVER ONLINE" : "SERVER OFFLINE"}
+        `;
 
-        element.innerHTML =
-            `
-            <span class="status-dot"></span>
-            SERVER ONLINE
-            `;
-
-        element.style.color =
-            "#35ff72";
-
-    } else {
-
-        element.innerHTML =
-            `
-            <span class="status-dot"></span>
-            SERVER OFFLINE
-            `;
-
-        element.style.color =
-            "#ff5264";
-    }
+    element.style.color =
+        online
+            ? "#35ff72"
+            : "#ff5264";
 }
 
 
@@ -481,7 +683,8 @@ function updateHeroStatus(online) {
 
 function updateStatusDot(online) {
 
-    const dot = $("statusDot");
+    const dot =
+        $("statusDot");
 
     if (!dot) {
         return;
@@ -502,37 +705,8 @@ function updateStatusDot(online) {
 
         dot.style.boxShadow =
             "0 0 10px #ff5264";
+
     }
-}
-
-
-/* ==================================================
-   ONLINE ELEMENTS
-================================================== */
-
-function updateOnlineElements(online) {
-
-    const elements =
-        $all("[data-server-status]");
-
-    elements.forEach(element => {
-
-        element.textContent =
-            online
-                ? "ONLINE"
-                : "OFFLINE";
-
-        element.classList.toggle(
-            "online",
-            online
-        );
-
-        element.classList.toggle(
-            "offline",
-            !online
-        );
-
-    });
 }
 
 
@@ -576,72 +750,6 @@ function updatePlayerProgress(
 
 
 /* ==================================================
-   COPY SERVER IP
-================================================== */
-
-function setupCopyButtons() {
-
-    const buttons =
-        $all(
-            "#copyIp, [data-copy-server]"
-        );
-
-    buttons.forEach(button => {
-
-        button.addEventListener(
-            "click",
-            async event => {
-
-                event.preventDefault();
-
-                const address =
-                    getServerAddress();
-
-                const success =
-                    await copyText(address);
-
-                if (success) {
-
-                    showToast(
-                        "Server IP copied!"
-                    );
-
-                    button.classList.add(
-                        "copied"
-                    );
-
-                    const originalText =
-                        button.textContent;
-
-                    button.textContent =
-                        "COPIED!";
-
-                    setTimeout(() => {
-
-                        button.textContent =
-                            originalText;
-
-                        button.classList.remove(
-                            "copied"
-                        );
-
-                    }, 1600);
-
-                } else {
-
-                    showToast(
-                        `Server IP: ${address}`
-                    );
-                }
-
-            }
-        );
-
-    });
-}
-
-
-/* ==================================================
    MOBILE MENU
 ================================================== */
 
@@ -657,7 +765,6 @@ function setupMobileMenu() {
         return;
     }
 
-
     button.setAttribute(
         "aria-expanded",
         "false"
@@ -666,18 +773,18 @@ function setupMobileMenu() {
 
     button.addEventListener(
         "click",
-        event => {
+        function(event) {
 
             event.preventDefault();
 
-            const isOpen =
+            const open =
                 menu.classList.toggle(
                     "open"
                 );
 
             button.setAttribute(
                 "aria-expanded",
-                String(isOpen)
+                String(open)
             );
 
         }
@@ -731,25 +838,6 @@ function setupMobileMenu() {
         }
     );
 
-
-    window.addEventListener(
-        "resize",
-        () => {
-
-            if (window.innerWidth > 1000) {
-
-                menu.classList.remove(
-                    "open"
-                );
-
-                button.setAttribute(
-                    "aria-expanded",
-                    "false"
-                );
-            }
-
-        }
-    );
 }
 
 
@@ -766,19 +854,14 @@ function setupActivePage() {
             .toLowerCase();
 
 
-    if (
-        !currentPage ||
-        currentPage === "/"
-    ) {
-
-        currentPage =
-            "index.html";
+    if (!currentPage) {
+        currentPage = "index.html";
     }
 
 
     const links =
         $all(
-            ".nav-links a, .mobile-menu a, .footer-links a"
+            ".nav-links a, .mobile-menu a"
         );
 
 
@@ -791,27 +874,14 @@ function setupActivePage() {
             return;
         }
 
-
-        if (
-            href.startsWith("#") ||
-            href.startsWith("http") ||
-            href.startsWith("mailto:")
-        ) {
-
-            return;
-        }
-
-
-        const cleanHref =
+        const clean =
             href
                 .split("?")[0]
                 .split("#")[0]
                 .toLowerCase();
 
 
-        if (
-            cleanHref === currentPage
-        ) {
+        if (clean === currentPage) {
 
             link.classList.add(
                 "active"
@@ -822,313 +892,117 @@ function setupActivePage() {
             link.classList.remove(
                 "active"
             );
+
         }
 
     });
+
 }
 
 
 /* ==================================================
-   PREVENT DEAD # LINKS
+   SERVER ADDRESS DATA
 ================================================== */
 
-function setupSafeLinks() {
+function setupServerAddress() {
 
-    const links =
-        $all('a[href="#"]');
+    $all("[data-server-ip]")
+        .forEach(element => {
 
-    links.forEach(link => {
+            element.textContent =
+                MR_CONFIG.server.host;
 
-        link.addEventListener(
-            "click",
-            event => {
+        });
 
-                event.preventDefault();
 
-                showToast(
-                    "This feature is coming soon."
-                );
+    $all("[data-server-port]")
+        .forEach(element => {
 
-            }
-        );
+            element.textContent =
+                MR_CONFIG.server.port;
 
-    });
+        });
+
+
+    $all("[data-server-address]")
+        .forEach(element => {
+
+            element.textContent =
+                getServerAddress();
+
+        });
+
 }
 
 
 /* ==================================================
-   KEYBOARD SHORTCUT
+   DEAD LINKS
 ================================================== */
 
-function setupKeyboardShortcuts() {
+function setupDeadLinks() {
+
+    $all('a[href="#"]')
+        .forEach(link => {
+
+            link.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    showToast(
+                        "This feature is coming soon."
+                    );
+
+                }
+            );
+
+        });
+
+}
+
+
+/* ==================================================
+   ESCAPE KEY
+================================================== */
+
+function setupEscapeKey() {
 
     document.addEventListener(
         "keydown",
         event => {
 
-            if (
-                event.key === "Escape"
-            ) {
-
-                const menu =
-                    $("mobileMenu");
-
-                const button =
-                    $("menuButton");
-
-                if (menu) {
-
-                    menu.classList.remove(
-                        "open"
-                    );
-                }
-
-                if (button) {
-
-                    button.setAttribute(
-                        "aria-expanded",
-                        "false"
-                    );
-                }
+            if (event.key !== "Escape") {
+                return;
             }
 
-        }
-    );
-}
+            const menu =
+                $("mobileMenu");
 
+            const button =
+                $("menuButton");
 
-/* ==================================================
-   PAGE FADE
-================================================== */
-
-function setupPageTransitions() {
-
-    const links =
-        $all(
-            'a[href$=".html"]'
-        );
-
-
-    links.forEach(link => {
-
-        link.addEventListener(
-            "click",
-            event => {
-
-                const href =
-                    link.getAttribute("href");
-
-                if (!href) {
-                    return;
-                }
-
-                if (
-                    event.ctrlKey ||
-                    event.shiftKey ||
-                    event.metaKey ||
-                    event.button !== 0
-                ) {
-                    return;
-                }
-
-                if (
-                    href.startsWith("http")
-                ) {
-                    return;
-                }
-
-                document.body.classList.add(
-                    "page-leaving"
+            if (menu) {
+                menu.classList.remove(
+                    "open"
                 );
-
             }
-        );
 
-    });
-}
-
-
-/* ==================================================
-   SERVER ADDRESS ELEMENTS
-================================================== */
-
-function setupServerAddressElements() {
-
-    const elements =
-        $all(
-            "[data-server-ip]"
-        );
-
-
-    elements.forEach(element => {
-
-        element.textContent =
-            MR_CONFIG.server.host;
-
-    });
-
-
-    const portElements =
-        $all(
-            "[data-server-port]"
-        );
-
-
-    portElements.forEach(element => {
-
-        element.textContent =
-            MR_CONFIG.server.port;
-
-    });
-
-
-    const fullAddressElements =
-        $all(
-            "[data-server-address]"
-        );
-
-
-    fullAddressElements.forEach(element => {
-
-        element.textContent =
-            getServerAddress();
-
-    });
-}
-
-
-/* ==================================================
-   CURRENT YEAR
-================================================== */
-
-function setupCurrentYear() {
-
-    const elements =
-        $all(
-            "[data-current-year]"
-        );
-
-
-    elements.forEach(element => {
-
-        element.textContent =
-            MR_CONFIG.website.year;
-
-    });
-}
-
-
-/* ==================================================
-   SERVER API DEBUG
-================================================== */
-
-function setupDebugInformation() {
-
-    window.MRguldMC = {
-
-        config: MR_CONFIG,
-
-        state: MR_STATE,
-
-        refresh: updateServerStatus,
-
-        server:
-            getServerAddress()
-
-    };
-
-}
-
-
-/* ==================================================
-   INITIALIZE
-================================================== */
-
-function initializeWebsite() {
-
-    console.log(
-        `%cMRguldMC%c website loaded`,
-        "color:#35ff72;font-weight:bold;",
-        "color:#ffffff;"
-    );
-
-
-    setupMobileMenu();
-
-    setupCopyButtons();
-
-    setupActivePage();
-
-    setupSafeLinks();
-
-    setupKeyboardShortcuts();
-
-    setupPageTransitions();
-
-    setupServerAddressElements();
-
-    setupCurrentYear();
-
-    setupDebugInformation();
-
-
-    updateServerStatus();
-
-}
-
-
-/* ==================================================
-   START WEBSITE
-================================================== */
-
-if (
-    document.readyState === "loading"
-) {
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        initializeWebsite
-    );
-
-} else {
-
-    initializeWebsite();
-
-}
-
-
-/* ==================================================
-   AUTO SERVER REFRESH
-================================================== */
-
-setInterval(
-    updateServerStatus,
-    MR_CONFIG.server.refreshRate
-);
-
-
-/* ==================================================
-   TAB VISIBILITY
-================================================== */
-
-document.addEventListener(
-    "visibilitychange",
-    () => {
-
-        if (
-            document.visibilityState === "visible"
-        ) {
-
-            updateServerStatus();
+            if (button) {
+                button.setAttribute(
+                    "aria-expanded",
+                    "false"
+                );
+            }
 
         }
+    );
 
-    }
-);
+}
 
 
 /* ==================================================
-   ONLINE / OFFLINE BROWSER STATUS
+   BROWSER CONNECTION
 ================================================== */
 
 window.addEventListener(
@@ -1152,6 +1026,89 @@ window.addEventListener(
         showToast(
             "You are currently offline."
         );
+
+    }
+);
+
+
+/* ==================================================
+   INITIALIZE
+================================================== */
+
+function initializeWebsite() {
+
+    console.log(
+        "[MRguldMC] Website initialized."
+    );
+
+
+    setupMobileMenu();
+
+    setupCopyButtons();
+
+    setupActivePage();
+
+    setupPageNavigation();
+
+    setupServerAddress();
+
+    setupDeadLinks();
+
+    setupEscapeKey();
+
+    updateServerStatus();
+
+}
+
+
+/* ==================================================
+   START
+================================================== */
+
+initialPageLoader();
+
+
+if (
+    document.readyState === "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeWebsite
+    );
+
+} else {
+
+    initializeWebsite();
+
+}
+
+
+/* ==================================================
+   SERVER REFRESH
+================================================== */
+
+setInterval(
+    updateServerStatus,
+    MR_CONFIG.server.refreshRate
+);
+
+
+/* ==================================================
+   REFRESH WHEN TAB BECOMES VISIBLE
+================================================== */
+
+document.addEventListener(
+    "visibilitychange",
+    () => {
+
+        if (
+            document.visibilityState === "visible"
+        ) {
+
+            updateServerStatus();
+
+        }
 
     }
 );

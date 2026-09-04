@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MRguldMC | Minecraft SMP</title>
+    <meta name="description" content="Official MRguldMC Minecraft SMP website.">
+
+    <link rel="stylesheet" href="styles.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Background -->
+    <div class="bg"></div>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="nav-container">
+
+            <a href="index.html" class="brand">
+                <img src="logo.png" alt="MRguldMC Logo">
+                <span>MRguldMC</span>
+            </a>
+
+            <!-- Desktop Navigation -->
+            <nav class="nav-links">
+
+                <a href="index.html" class="active">
+                    Home
+                </a>
+
+                <a href="rules.html">
+                    Rules
+                </a>
+
+                <a href="survival.html">
+                    Survival
+                </a>
+
+                <a href="store.html">
+                    Store
+                </a>
+
+                <a href="staff.html">
+                    Staff
+                </a>
+
+                <a href="status.html">
+                    Status
+                </a>
+
+                <a href="join.html" class="nav-join">
+                    Join
+                </a>
+
+            </nav>
+
+            <!-- Mobile Menu Button -->
+            <button
+                id="menuButton"
+                class="menu-button"
+                type="button"
+                aria-label="Open menu"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+        </div>
+
+        <!-- Mobile Navigation -->
+        <div id="mobileMenu" class="mobile-menu">
+
+            <a href="index.html" class="active">
+                Home
+            </a>
+
+            <a href="rules.html">
+                Rules
+            </a>
+
+            <a href="survival.html">
+                Survival
+            </a>
+
+            <a href="store.html">
+                Store
+            </a>
+
+            <a href="staff.html">
+                Staff
+            </a>
+
+            <a href="status.html">
+                Status
+            </a>
+
+            <a href="join.html">
+                Join
+            </a>
+
+        </div>
+    </header>
+
+
+    <!-- HERO -->
+    <main>
+
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <div id="heroStatus" class="status-badge">
+                    <span class="status-dot"></span>
+                    SERVER ONLINE
+                </div>
+
+                <h1>
+                    Welcome to
+                    <span>MRguldMC</span>
+                </h1>
+
+                <p>
+                    A friendly Minecraft SMP server built for
+                    adventure, community and unforgettable moments.
+                </p>
+
+                <div class="hero-buttons">
+
+                    <a href="join.html" class="btn btn-primary">
+                        Join Server
+                    </a>
+
+                    <a href="rules.html" class="btn btn-secondary">
+                        View Rules
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- LOGO -->
+            <div class="hero-logo">
+
+                <div class="logo-glow"></div>
+
+                <img
+                    src="logo.png"
+                    alt="MRguldMC"
+                >
+
+            </div>
+
+        </section>
+
+
+        <!-- SERVER STATUS -->
+        <section id="server" class="server-section">
+
+            <div class="section-title">
+
+                <span>SERVER STATUS</span>
+
+                <h2>
+                    Minecraft Server
+                </h2>
+
+                <p>
+                    Check the live status of MRguldMC.
+                </p>
+
+            </div>
+
+
+            <div class="server-card">
+
+                <div class="server-card-top">
+
+                    <div class="server-info">
+
+                        <div class="server-icon">
+                            ⛏
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                MRguldMC
+                            </h3>
+
+                            <p>
+                                play.mrguldmc.dk
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="server-status">
+
+                        <span
+                            id="statusDot"
+                            class="status-dot"
+                        ></span>
+
+                        <span id="statusText">
+                            CHECKING
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Player Count -->
+                <div class="player-section">
+
+                    <div class="player-header">
+
+                        <span>
+                            Players Online
+                        </span>
+
+                        <strong>
+                            <span id="playerCount">0</span>
+                            /
+                            <span id="maxPlayers">0</span>
+                        </strong>
+
+                    </div>
+
+                    <div class="progress-bar">
+
+                        <div
+                            id="playerProgress"
+                            class="progress-fill"
+                            style="width: 0%"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Server Details -->
+                <div class="server-details">
+
+                    <div class="server-detail">
+
+                        <span class="detail-label">
+                            Status
+                        </span>
+
+                        <strong id="serverState">
+                            Checking...
+                        </strong>
+
+                    </div>
+
+
+                    <div class="server-detail">
+
+                        <span class="detail-label">
+                            Version
+                        </span>
+
+                        <strong id="serverVersion">
+                            Checking...
+                        </strong>
+
+                    </div>
+
+
+                    <div class="server-detail">
+
+                        <span class="detail-label">
+                            Address
+                        </span>
+
+                        <strong>
+                            play.mrguldmc.dk
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Copy IP -->
+                <button
+                    id="copyIp"
+                    class="copy-ip"
+                    type="button"
+                >
+                    Copy Server IP
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- FEATURES -->
+        <section class="features-section">
+
+            <div class="section-title">
+
+                <span>WHY MRguldMC?</span>
+
+                <h2>
+                    Built For Players
+                </h2>
+
+                <p>
+                    Everything you need for a great SMP experience.
+                </p>
+
+            </div>
+
+
+            <div class="features-grid">
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        🌍
+                    </div>
+
+                    <h3>
+                        Survival
+                    </h3>
+
+                    <p>
+                        Explore a constantly evolving survival world
+                        and build your own adventure.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        👥
+                    </div>
+
+                    <h3>
+                        Community
+                    </h3>
+
+                    <p>
+                        Meet other players, build together and
+                        become part of the MRguldMC community.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        ⚡
+                    </div>
+
+                    <h3>
+                        Performance
+                    </h3>
+
+                    <p>
+                        Enjoy a smooth Minecraft experience with
+                        a server optimized for performance.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        🛡️
+                    </div>
+
+                    <h3>
+                        Fair Play
+                    </h3>
+
+                    <p>
+                        A fair and friendly environment with rules
+                        designed to protect the community.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- CTA -->
+        <section class="cta-section">
+
+            <div class="cta-card">
+
+                <div>
+
+                    <span class="cta-small">
+                        READY TO PLAY?
+                    </span>
+
+                    <h2>
+                        Join MRguldMC Today
+                    </h2>
+
+                    <p>
+                        Grab your friends and start your Minecraft
+                        adventure.
+                    </p>
+
+                </div>
+
+
+                <a
+                    href="join.html"
+                    class="btn btn-primary"
+                >
+                    How To Join
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- FOOTER -->
+    <footer class="footer">
+
+        <div class="footer-container">
+
+            <div class="footer-brand">
+
+                <img
+                    src="logo.png"
+                    alt="MRguldMC"
+                >
+
+                <div>
+
+                    <strong>
+                        MRguldMC
+                    </strong>
+
+                    <p>
+                        Minecraft SMP Server
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="footer-links">
+
+                <a href="index.html">
+                    Home
+                </a>
+
+                <a href="rules.html">
+                    Rules
+                </a>
+
+                <a href="survival.html">
+                    Survival
+                </a>
+
+                <a href="store.html">
+                    Store
+                </a>
+
+                <a href="staff.html">
+                    Staff
+                </a>
+
+                <a href="status.html">
+                    Status
+                </a>
+
+                <a href="join.html">
+                    Join
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            <p>
+                Made with ❤️ by MRguldDev
+            </p>
+
+            <p>
+                © 2026 MRguldMC
+            </p>
+
+        </div>
+
+    </footer>
+
+
+    <!-- COPY TOAST -->
+    <div
+        id="toast"
+        class="toast"
+    >
+        Server IP copied!
+    </div>
+
+
+    <!-- JAVASCRIPT -->
+    <script src="javascript.js"></script>
+
+</body>
+</html>
